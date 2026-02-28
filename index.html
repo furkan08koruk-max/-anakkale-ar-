@@ -2,34 +2,43 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canakkale AR - MindAR</title>
+    <title>Canakkale AR</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #ui {
+            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+            z-index: 999; color: white; background: rgba(0,0,0,0.6);
+            padding: 10px; border-radius: 10px; font-family: sans-serif; text-align: center;
+        }
+    </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
+    <div id="ui">Kamera açıldığında ekrana DOKUN ve resme tut!</div>
 
-    <div id="ui" style="position: fixed; z-index: 100; top:10px; width:100%; text-align:center; color:white; font-family:sans-serif;">
-        Kamerayı Çanakkale resmine tut ve videoyu başlatmak için EKRANA DOKUN!
-    </div>
-
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: yes; uiScanning: yes;" 
+             color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
+             vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-       <video id="arVideo" src="video.mp4" preload="auto" loop="true" crossorigin="anonymous" playsinline webkit-playsinline muted></video>
+        <video id="arVideo" src="video.mp4" preload="auto" loop="true" 
+               crossorigin="anonymous" playsinline webkit-playsinline muted></video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <a-video src="#arVideo" width="1" height="0.56" position="0 0 0" rotation="0 0 0"></a-video>
+        <a-video src="#arVideo" width="1" height="0.56" position="0 0 0"></a-video>
       </a-entity>
-      
     </a-scene>
 
     <script>
-        // Ekrana tıklandığında videoyu oynat
+        // Dokunma ile videoyu ve sesi başlat
         document.body.addEventListener('click', () => {
-            const video = document.querySelector('#arVideo');
-            video.play();
+            const v = document.querySelector('#arVideo');
+            v.muted = false; // Sesi açar
+            v.play();
             document.getElementById('ui').style.display = 'none';
         });
     </script>
