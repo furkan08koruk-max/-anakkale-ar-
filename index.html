@@ -2,91 +2,107 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Çanakkale AR Deneyimi</title>
+    <title>Çanakkale AR Projesi</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        /* Giriş Ekranı Tasarımı */
+        body { margin: 0; overflow: hidden; }
+        
+        /* Giriş Ekranı */
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #8b0000 0%, #2b0000 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center; transition: opacity 0.5s;
+            z-index: 10000; color: white; font-family: sans-serif; text-align: center;
+            transition: opacity 0.5s;
         }
-        #overlay h1 { font-size: 24px; margin-bottom: 20px; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-        #overlay p { font-size: 16px; margin-bottom: 30px; opacity: 0.8; padding: 0 20px; }
-        
-        /* Şık Buton Tasarımı */
         .start-btn {
             padding: 15px 40px; font-size: 18px; font-weight: bold; color: #8b0000;
             background: white; border: none; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.3); transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
         }
-        .start-btn:active { transform: scale(0.95); }
+
+        /* Tarayıcı Görseli (Scanner) */
+        #scanner {
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 280px; height: 280px;
+            border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 10px; z-index: 999;
+        }
         
-        /* Tarama Çerçevesi */
-        .scanning-guide {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 250px; height: 150px; border: 2px dashed rgba(255,255,255,0.5);
-            z-index: 10; display: none; pointer-events: none;
+        /* Hareket Eden Tarama Çizgisi */
+        #scanner::after {
+            content: ""; position: absolute; width: 100%; height: 4px;
+            background: #ff0000; box-shadow: 0 0 15px #ff0000;
+            animation: scan 2s infinite ease-in-out;
         }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        /* Köşe Çerçeveleri */
+        .corner { position: absolute; width: 30px; height: 30px; border: 4px solid #fff; }
+        .tl { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+        .tr { top: -5px; right: -5px; border-left: none; border-bottom: none; }
+        .bl { bottom: -5px; left: -5px; border-right: none; border-top: none; }
+        .br { bottom: -5px; right: -5px; border-left: none; border-top: none; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
         <h1>ÇANAKKALE GEÇİLMEZ</h1>
-        <p>Deneyimi başlatmak için butona bas ve kameranı görsele odakla.</p>
+        <p>Resmi taramak için butona basınız.</p>
         <button class="start-btn" id="startButton">DENEYİMİ BAŞLAT</button>
     </div>
 
-    <div class="scanning-guide" id="guide"></div>
+    <div id="scanner">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+    </div>
 
     <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiScanning: no;" 
-             color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
              vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
       <a-assets>
-        <video id="arVideo" src="video.mp4" preload="auto" loop="true" 
-               crossorigin="anonymous" playsinline webkit-playsinline muted></video>
+        <video id="arVideo" src="video.mp4" preload="auto" loop="true" crossorigin="anonymous" playsinline muted></video>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0">
+      <a-entity id="target" mindar-image-target="targetIndex: 0">
         <a-video src="#arVideo" width="2" height="1.12" position="0 0 0"></a-video>
       </a-entity>
     </a-scene>
 
     <script>
-    const overlay = document.getElementById('overlay');
-    const startBtn = document.getElementById('startButton');
-    const video = document.querySelector('#arVideo');
-    const sceneEl = document.querySelector('a-scene');
+        const overlay = document.getElementById('overlay');
+        const scanner = document.getElementById('scanner');
+        const video = document.querySelector('#arVideo');
+        const target = document.getElementById('target');
 
-    // 1. ADIM: Butona basınca sadece videoyu "hazırla" ama sesi açma
-    startBtn.addEventListener('click', () => {
-        video.play(); 
-        video.muted = true; // Kesinlikle sessiz başla
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.style.display = 'none'; }, 500);
-    });
+        document.getElementById('startButton').addEventListener('click', () => {
+            video.play();
+            overlay.style.opacity = '0';
+            setTimeout(() => { 
+                overlay.style.display = 'none'; 
+                scanner.style.display = 'block'; // Tarayıcıyı aç
+            }, 500);
+        });
 
-    // 2. ADIM: Resim algılandığında (targetFound) sesi patlat!
-    const targetEntity = document.querySelector('[mindar-image-target]');
-    
-    targetEntity.addEventListener("targetFound", event => {
-        console.log("Resim bulundu, ses açılıyor...");
-        video.muted = false;
-        video.volume = 1.0;
-    });
+        target.addEventListener("targetFound", () => {
+            video.muted = false;
+            scanner.style.display = 'none'; // Resim bulunca tarayıcıyı gizle
+        });
 
-    // 3. ADIM: Resim kaybolduğunda (targetLost) sesi kıs (İsteğe bağlı)
-    targetEntity.addEventListener("targetLost", event => {
-        console.log("Resim kayboldu, ses kısılıyor...");
-        video.muted = true;
-    });
-</script>
+        target.addEventListener("targetLost", () => {
+            video.muted = true;
+            scanner.style.display = 'block'; // Resim kaybolunca tarayıcıyı geri getir
+        });
+    </script>
 </body>
 </html>
