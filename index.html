@@ -60,27 +60,33 @@
     </a-scene>
 
     <script>
-        const overlay = document.getElementById('overlay');
-        const startBtn = document.getElementById('startButton');
-        const guide = document.getElementById('guide');
-        const video = document.querySelector('#arVideo');
+    const overlay = document.getElementById('overlay');
+    const startBtn = document.getElementById('startButton');
+    const video = document.querySelector('#arVideo');
+    const sceneEl = document.querySelector('a-scene');
 
-        startBtn.addEventListener('click', () => {
-            // Sesi hazırla ve oynatmayı başlat (sessiz olarak)
-            video.play();
-            // Giriş ekranını gizle
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                guide.style.display = 'block'; // Tarama rehberini göster
-            }, 500);
-        });
+    // 1. ADIM: Butona basınca sadece videoyu "hazırla" ama sesi açma
+    startBtn.addEventListener('click', () => {
+        video.play(); 
+        video.muted = true; // Kesinlikle sessiz başla
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.style.display = 'none'; }, 500);
+    });
 
-        // Resim algılandığında sesi aç ve rehberi gizle
-        video.addEventListener('playing', () => {
-            video.muted = false;
-            guide.style.display = 'none';
-        });
-    </script>
+    // 2. ADIM: Resim algılandığında (targetFound) sesi patlat!
+    const targetEntity = document.querySelector('[mindar-image-target]');
+    
+    targetEntity.addEventListener("targetFound", event => {
+        console.log("Resim bulundu, ses açılıyor...");
+        video.muted = false;
+        video.volume = 1.0;
+    });
+
+    // 3. ADIM: Resim kaybolduğunda (targetLost) sesi kıs (İsteğe bağlı)
+    targetEntity.addEventListener("targetLost", event => {
+        console.log("Resim kayboldu, ses kısılıyor...");
+        video.muted = true;
+    });
+</script>
 </body>
 </html>
