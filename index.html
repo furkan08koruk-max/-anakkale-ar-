@@ -2,22 +2,48 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canakkale AR</title>
+    <title>Çanakkale AR Deneyimi</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; }
-        #ui {
-            position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-            z-index: 999; color: white; background: rgba(0,0,0,0.6);
-            padding: 10px; border-radius: 10px; font-family: sans-serif; text-align: center;
+        /* Giriş Ekranı Tasarımı */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #8b0000 0%, #2b0000 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center; transition: opacity 0.5s;
+        }
+        #overlay h1 { font-size: 24px; margin-bottom: 20px; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        #overlay p { font-size: 16px; margin-bottom: 30px; opacity: 0.8; padding: 0 20px; }
+        
+        /* Şık Buton Tasarımı */
+        .start-btn {
+            padding: 15px 40px; font-size: 18px; font-weight: bold; color: #8b0000;
+            background: white; border: none; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.3); transition: transform 0.2s;
+        }
+        .start-btn:active { transform: scale(0.95); }
+        
+        /* Tarama Çerçevesi */
+        .scanning-guide {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 250px; height: 150px; border: 2px dashed rgba(255,255,255,0.5);
+            z-index: 10; display: none; pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div id="ui">Kamera açıldığında ekrana dokun ve resme tut!</div>
 
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: yes; uiScanning: yes;" 
+    <div id="overlay">
+        <h1>ÇANAKKALE GEÇİLMEZ</h1>
+        <p>Deneyimi başlatmak için butona bas ve kameranı görsele odakla.</p>
+        <button class="start-btn" id="startButton">DENEYİMİ BAŞLAT</button>
+    </div>
+
+    <div class="scanning-guide" id="guide"></div>
+
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiScanning: no;" 
              color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
              vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       
@@ -29,17 +55,31 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-       <a-video src="#arVideo" width="2" height="1.12" position="0 0 0"></a-video>
+        <a-video src="#arVideo" width="2" height="1.12" position="0 0 0"></a-video>
       </a-entity>
     </a-scene>
 
     <script>
-        // Dokunma ile videoyu ve sesi başlat
-        document.body.addEventListener('click', () => {
-            const v = document.querySelector('#arVideo');
-            v.muted = false; // Sesi açar
-            v.play();
-            document.getElementById('ui').style.display = 'none';
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('startButton');
+        const guide = document.getElementById('guide');
+        const video = document.querySelector('#arVideo');
+
+        startBtn.addEventListener('click', () => {
+            // Sesi hazırla ve oynatmayı başlat (sessiz olarak)
+            video.play();
+            // Giriş ekranını gizle
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                guide.style.display = 'block'; // Tarama rehberini göster
+            }, 500);
+        });
+
+        // Resim algılandığında sesi aç ve rehberi gizle
+        video.addEventListener('playing', () => {
+            video.muted = false;
+            guide.style.display = 'none';
         });
     </script>
 </body>
